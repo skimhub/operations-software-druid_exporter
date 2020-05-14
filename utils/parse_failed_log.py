@@ -1,8 +1,6 @@
 #!/usr/bin/python
-# Copyright 2020 Luca Toscano
-#                Filippo Giunchedi
-#                Wikimedia Foundation
-#                Rafa Diaz
+# Copyright 2020 Rafa Diaz
+# 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -35,19 +33,6 @@
 #         },
 #         [..]
 # [..]
-#
-# [..]
-#     "json['service']": {
-#     	[..]
-#         "json['metrics']": {
-#             "prometheus_metric_name": "druid_+json['metric'].replace('/','_')",
-#             "type": "gauge",
-#             "labels": ["dataSource"], if json['dataSource"]
-#             "description": "put the metric separated with spaces here."
-#         },
-#         [..]
-# [..]
-#
 
 
 import argparse
@@ -71,8 +56,6 @@ def load_descriptions():
         if (desc_match):
             # print("Match")
             desc_dict[desc_match.group(1)] = desc_match.group(2)
-        else:
-            print("No match")
     return desc_dict
 
 def is_processed(service, metric):
@@ -124,17 +107,15 @@ for line in sys.stdin:
     else:
         output_json[metric_name]["description"] = "druid_{0}".format(metric_name.replace('/','_'))
     
-    
+
     # Some heuristic to guess the labels
     possible_labels = ["dataSource", "memKind", "bufferpoolName"]
-    labels = "[]" # By default it needs the field label even with an empty list.
+    output_json[metric_name]['labels'] = [] # By default it needs the field label even with an empty list.
 
     for possible_label in possible_labels:
         if possible_label in parsed_json.keys():
-            print("Adding {0} it as label for prometheus.".format(possible_label))
-            labels = possible_label
-    
-    output_json[metric_name]['labels'] = labels
+            print("Adding {0} as label for prometheus.".format(possible_label))
+            output_json[metric_name]['labels'].append(possible_label)
 
     
     # Some light heuristic to guess the type.
